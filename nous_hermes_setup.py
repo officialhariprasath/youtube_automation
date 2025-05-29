@@ -6,12 +6,23 @@ import gc
 import sys
 import subprocess
 
-def setup_cuda_environment():
+def setup_cuda():
     """
-    Setup CUDA environment variables
+    Setup CUDA environment variables and verify installation
     """
-    os.environ['CUDA_VISIBLE_DEVICES'] = '0'
-    os.environ['LD_LIBRARY_PATH'] = '/usr/local/cuda/lib64:' + os.environ.get('LD_LIBRARY_PATH', '')
+    # Set CUDA environment variables
+    os.environ['CUDA_HOME'] = '/usr/local/cuda-12.4'
+    os.environ['PATH'] = '/usr/local/cuda-12.4/bin:' + os.environ['PATH']
+    os.environ['LD_LIBRARY_PATH'] = '/usr/local/cuda-12.4/lib64:' + os.environ.get('LD_LIBRARY_PATH', '')
+    
+    # Verify CUDA installation
+    if not torch.cuda.is_available():
+        raise RuntimeError("CUDA is not available. Please make sure you're using a GPU runtime in Colab.")
+    
+    print(f"CUDA is available: {torch.cuda.is_available()}")
+    print(f"CUDA device count: {torch.cuda.device_count()}")
+    print(f"CUDA device name: {torch.cuda.get_device_name(0)}")
+    print(f"CUDA version: {torch.version.cuda}")
 
 def install_bitsandbytes():
     """
@@ -21,26 +32,20 @@ def install_bitsandbytes():
         import bitsandbytes as bnb
         print("BitsAndBytes is already installed. Version:", bnb.__version__)
     except ImportError:
-        print("Installing bitsandbytes...")
-        # First uninstall any existing version
-        subprocess.check_call([sys.executable, "-m", "pip", "uninstall", "-y", "bitsandbytes"])
-        # Install specific version
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "bitsandbytes==0.40.2"])
+        print("Installing bitsandbytes from source...")
+        # Clone and install bitsandbytes
+        subprocess.check_call(["git", "clone", "https://github.com/TimDettmers/bitsandbytes.git"])
+        os.chdir("bitsandbytes")
+        subprocess.check_call(["CUDA_VERSION=124", "python", "setup.py", "install"])
+        os.chdir("..")
         print("BitsAndBytes installation complete.")
 
 def check_cuda():
     """
     Check if CUDA is available and properly configured
     """
-    setup_cuda_environment()
-    
-    if not torch.cuda.is_available():
-        raise RuntimeError("CUDA is not available. Please make sure you're using a GPU runtime in Colab.")
-    
-    print(f"CUDA is available: {torch.cuda.is_available()}")
-    print(f"CUDA device count: {torch.cuda.device_count()}")
-    print(f"CUDA device name: {torch.cuda.get_device_name(0)}")
-    print(f"CUDA version: {torch.version.cuda}")
+    # Setup CUDA environment
+    setup_cuda()
     
     # Install and check bitsandbytes
     install_bitsandbytes()
