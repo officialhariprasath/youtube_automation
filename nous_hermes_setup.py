@@ -4,6 +4,19 @@ import os
 from huggingface_hub import login
 import gc
 import sys
+import subprocess
+
+def install_bitsandbytes():
+    """
+    Install bitsandbytes with CUDA support
+    """
+    try:
+        import bitsandbytes as bnb
+        print("BitsAndBytes is already installed. Version:", bnb.__version__)
+    except ImportError:
+        print("Installing bitsandbytes...")
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "bitsandbytes==0.41.1"])
+        print("BitsAndBytes installation complete.")
 
 def check_cuda():
     """
@@ -16,13 +29,11 @@ def check_cuda():
     print(f"CUDA device count: {torch.cuda.device_count()}")
     print(f"CUDA device name: {torch.cuda.get_device_name(0)}")
     
-    # Check bitsandbytes CUDA support
-    try:
-        import bitsandbytes as bnb
-        print("BitsAndBytes version:", bnb.__version__)
-        print("BitsAndBytes CUDA available:", bnb.CUDA_AVAILABLE)
-    except ImportError:
-        raise ImportError("BitsAndBytes is not installed. Please install it with CUDA support.")
+    # Install and check bitsandbytes
+    install_bitsandbytes()
+    import bitsandbytes as bnb
+    print("BitsAndBytes version:", bnb.__version__)
+    print("BitsAndBytes CUDA available:", bnb.CUDA_AVAILABLE)
 
 def setup_model():
     """
