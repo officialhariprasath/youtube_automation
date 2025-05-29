@@ -5,15 +5,16 @@ from huggingface_hub import login
 import gc
 import sys
 import subprocess
+import shutil
 
 def setup_cuda():
     """
     Setup CUDA environment variables and verify installation
     """
     # Set CUDA environment variables
-    os.environ['CUDA_HOME'] = '/usr/local/cuda-12.4'
-    os.environ['PATH'] = '/usr/local/cuda-12.4/bin:' + os.environ['PATH']
-    os.environ['LD_LIBRARY_PATH'] = '/usr/local/cuda-12.4/lib64:' + os.environ.get('LD_LIBRARY_PATH', '')
+    os.environ['CUDA_HOME'] = '/usr/local/cuda'
+    os.environ['PATH'] = '/usr/local/cuda/bin:' + os.environ['PATH']
+    os.environ['LD_LIBRARY_PATH'] = '/usr/local/cuda/lib64:' + os.environ.get('LD_LIBRARY_PATH', '')
     
     # Verify CUDA installation
     if not torch.cuda.is_available():
@@ -33,12 +34,27 @@ def install_bitsandbytes():
         print("BitsAndBytes is already installed. Version:", bnb.__version__)
     except ImportError:
         print("Installing bitsandbytes from source...")
+        # Remove existing bitsandbytes if any
+        try:
+            subprocess.check_call(["pip", "uninstall", "-y", "bitsandbytes"])
+        except:
+            pass
+            
         # Clone and install bitsandbytes
+        if os.path.exists("bitsandbytes"):
+            shutil.rmtree("bitsandbytes")
+            
         subprocess.check_call(["git", "clone", "https://github.com/TimDettmers/bitsandbytes.git"])
         os.chdir("bitsandbytes")
-        subprocess.check_call(["CUDA_VERSION=124", "python", "setup.py", "install"])
+        
+        # Set CUDA version and install
+        os.environ['CUDA_VERSION'] = '124'
+        subprocess.check_call(["python", "setup.py", "install"])
         os.chdir("..")
-        print("BitsAndBytes installation complete.")
+        
+        # Verify installation
+        import bitsandbytes as bnb
+        print("BitsAndBytes installation complete. Version:", bnb.__version__)
 
 def check_cuda():
     """
