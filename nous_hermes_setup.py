@@ -4,30 +4,26 @@ import gc
 
 def setup_model():
     """
-    Simple setup function to initialize the Nous-Hermes 2 Mistral 7B model
+    Simple setup function to initialize GPT-2 model
     """
     # Clear GPU memory
     torch.cuda.empty_cache()
     gc.collect()
     
-    # Model configuration
-    model_name = "NousResearch/Nous-Hermes-2-Mistral-7B-DPO"
+    # Model configuration - using GPT-2 which is smaller and easier to run
+    model_name = "gpt2"
     
     try:
         # Initialize tokenizer
         print("Initializing tokenizer...")
-        tokenizer = AutoTokenizer.from_pretrained(
-            model_name,
-            trust_remote_code=True
-        )
+        tokenizer = AutoTokenizer.from_pretrained(model_name)
         
         # Initialize model with basic settings
         print("Loading model...")
         model = AutoModelForCausalLM.from_pretrained(
             model_name,
             torch_dtype=torch.float16,
-            device_map="auto",
-            trust_remote_code=True
+            device_map="auto"
         )
         
         return model, tokenizer
@@ -36,7 +32,7 @@ def setup_model():
         print(f"Error during model setup: {str(e)}")
         raise
 
-def generate_response(model, tokenizer, prompt, max_length=512):
+def generate_response(model, tokenizer, prompt, max_length=100):
     """
     Generate response from the model
     """
@@ -71,7 +67,7 @@ def main():
     print("Model setup complete!")
     
     # Example usage
-    prompt = "Write a short story about a robot learning to paint."
+    prompt = "Once upon a time, there was a robot"
     print("\nGenerating response for prompt:", prompt)
     response = generate_response(model, tokenizer, prompt)
     print("\nGenerated response:", response)
