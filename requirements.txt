@@ -1,7 +1,8 @@
 torch>=2.0.0
 transformers>=4.36.0
 accelerate>=0.20.0
-bitsandbytes>=0.41.0
+bitsandbytes-cuda12x>=0.41.0
 huggingface-hub>=0.16.0
 sentencepiece>=0.1.99
-protobuf>=3.20.0 
+protobuf>=3.20.0
+nvidia-cuda-runtime-cu12 
