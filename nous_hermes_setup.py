@@ -1,5 +1,5 @@
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 import os
 from huggingface_hub import login
 import gc
@@ -22,12 +22,19 @@ def setup_model():
         use_fast=True
     )
     
+    # Configure 4-bit quantization
+    quantization_config = BitsAndBytesConfig(
+        load_in_4bit=True,
+        bnb_4bit_compute_dtype=torch.float16,
+        bnb_4bit_quant_type="nf4",
+        bnb_4bit_use_double_quant=True
+    )
+    
     # Initialize model with 4-bit quantization for memory efficiency
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
-        torch_dtype=torch.float16,
+        quantization_config=quantization_config,
         device_map="auto",
-        load_in_4bit=True,
         trust_remote_code=True
     )
     
